@@ -193,7 +193,7 @@ while running:
             
             if spell.type == "white":
                 enemy.heal(magic_damage)
-                print(bcolors.FAIL + f"\n{enemy.name.strip()} has healed for ", magic_damage, "HP." + bcolors.ENDC)
+                print(bcolors.FAIL + f"{enemy.name.strip()} has healed for ", magic_damage, "HP.")
             elif spell.type == "black":   
                 player_attacked = random.randint(0, len(players)-1)
                 players[player_attacked].take_damage(spell.damage)
