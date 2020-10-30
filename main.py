@@ -13,15 +13,16 @@ import random
 # Instantiate Spells
 
 # Create black spells
-fire = Spells("fire", 100, 10, "black")
+fire = Spells("fire", 500, 10, "black")
 thunder = Spells("thunder", 100, 10, "black")
 blizzard = Spells("blizzard", 100, 10, "black")
-quake = Spells("quake", 100, 10, "black")
+quake = Spells("quake", 500, 10, "black")
 meteor = Spells("meteor", 100, 10, "black")
 
 # Create white spells
 cure = Spells("cure", 100, 10, "white")
 cura = Spells("cura", 100, 10, "white")
+curaga = Spells("curaga", 1000, 20, "white")
 
 
 # Instantiate items
@@ -35,6 +36,7 @@ grenade = Items("Grenade", "attack", "Deals 500 damage", 500)
 
 
 player_spells = [fire, thunder, blizzard, quake, meteor, cure, cura]
+enemy_spells = [fire, thunder, blizzard, quake, meteor, curaga]
 player_items = [{"item": potion, "quantity": 15}, 
                  {"item": super_potion, "quantity": 5},
                  {"item": elixir, "quantity": 5},
@@ -45,9 +47,9 @@ player1 = Person("Valos", 2400, 20, 40, 45, player_spells, player_items)
 player2 = Person("Nick ", 4100, 30, 45, 60, player_spells, player_items)
 player3 = Person("Robot", 3300, 40, 45, 30, player_spells, player_items)
 
-enemy1 = Person("Imp  ", 1000, 0, 1200, 10, [], [])
-enemy2 = Person("Eren ", 1000, 0, 800, 10, [], [])
-enemy3 = Person("Imp  ", 1000, 0, 1200, 10, [], [])
+enemy1 = Person("Imp  ", 1000, 30, 1200, 10, enemy_spells, [])
+enemy2 = Person("Eren ", 1000, 30, 800, 10, enemy_spells, [])
+enemy3 = Person("Imp  ", 1000, 30, 1200, 10, enemy_spells, [])
 
 players = [player1, player2, player3]
 enemies = [enemy1, enemy2, enemy3]
@@ -66,6 +68,8 @@ while running:
     print("\n")
     for enemy in enemies:
         enemy.get_enemy_stats()
+        
+    # Player turn to attack
     for player in players:
         print("\n")        
         print(bcolors.BOLD + "    " + player.name + bcolors.ENDC)
@@ -150,7 +154,7 @@ while running:
             elif item.type == "attack":
                 enemy_choice = player.choose_target(enemies)
                 enemies[enemy_choice].take_damage(item.prop)
-                print(f"{player.name.strip()} attacked {enemies[enemy_choice].name.strip()} enemy for:", damage)
+                print(f"{player.name.strip()} attacked {enemies[enemy_choice].name.strip()} enemy for {damage}")
                 if enemies[enemy_choice].hp == 0:
                     print(f"{enemies[enemy_choice].name.strip()} has died.")
                     enemies.pop(enemy_choice)
@@ -158,22 +162,49 @@ while running:
                         running = False
                         print(bcolors.OKGREEN + bcolors.BOLD + "You have won!" + bcolors.ENDC)
                         break
-   
+    if not running:
+        break
     # Enemies attack
     print(bcolors.BOLD + bcolors.FAIL + "\nEnemies turn to attack...")
-    for enemy in enemies:  
-        enemy_damage = enemy.generate_damage()
-        player_attacked = random.randint(0, len(players)-1)
-        players[player_attacked].take_damage(enemy_damage)
-        print(f"{enemy.name.strip()} attacked {players[player_attacked].name.strip()} for {enemy_damage}.")    
-        if players[player_attacked].hp == 0:
-            print(f"{players[player_attacked].name.strip()} has died.")
-            players.pop(player_attacked)
-            if len(players) == 0:
-                running = False
-                print(bcolors.FAIL + bcolors.BOLD + "You have lost!" + bcolors.ENDC)
-                break
-             
+    for enemy in enemies: 
+        enemy_action = random.randint(0,1)
+        
+        if enemy_action == 0:
+            enemy_damage = enemy.generate_damage()
+            player_attacked = random.randint(0, len(players)-1)
+            players[player_attacked].take_damage(enemy_damage)
+            print(f"{enemy.name.strip()} attacked {players[player_attacked].name.strip()} for {enemy_damage}.")    
+            if players[player_attacked].hp == 0:
+                print(f"{players[player_attacked].name.strip()} has died.")
+                players.pop(player_attacked)
+                if len(players) == 0:
+                    running = False
+                    print(bcolors.FAIL + bcolors.BOLD + "You have lost!" + bcolors.ENDC)
+                    break
+                
+        if enemy_action == 1:
+            spell = enemy.choose_enemy_spell()       
+            if spell.cost > enemy.get_mp():
+                print(f"{enemy.name.strip()} does not have enough MP")
+                continue
+            
+            magic_damage = spell.generate_spell_damage()
+            print(f"{enemy.name.strip()} has chosen {spell.name}.")
+            
+            if spell.type == "white":
+                enemy.heal(magic_damage)
+                print(bcolors.FAIL + f"\n{enemy.name.strip()} has healed for ", magic_damage, "HP." + bcolors.ENDC)
+            elif spell.type == "black":   
+                player_attacked = random.randint(0, len(players)-1)
+                players[player_attacked].take_damage(spell.damage)
+                print(f"{enemy.name.strip()} attacked {players[player_attacked].name.strip()} for {spell.damage} HP.")
+                if players[player_attacked].hp == 0:
+                    print(f"{players[player_attacked].name.strip()} has died.")
+                    players.pop(player_attacked)
+                    if len(players) == 0:
+                        running = False
+                        print(bcolors.FAIL + bcolors.BOLD + "You have lost!" + bcolors.ENDC)
+                        break                
     
     print(bcolors.ENDC)
 

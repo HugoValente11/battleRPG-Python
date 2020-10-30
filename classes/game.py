@@ -130,4 +130,14 @@ class Person:
             i += 1
         choice = int(input("Choose enemy to attack: ")) - 1
         return choice
+    
+    def choose_enemy_spell(self):
+        percentage_of_HP = self.hp / self.max_hp * 100
+        if percentage_of_HP < 50 and random.randrange(0,100) < 70:
+            spell = self.magic[5]
+            self.mp -= self.magic[5].cost
+        else:
+            spell = self.magic[random.randrange(0, len(self.magic))]
+            
+        return spell
             
